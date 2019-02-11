@@ -4,12 +4,13 @@ const bodyParser = require('body-parser')
 
 const morgan = require('morgan')
 
-const { Pool } = require('pg')
+const pool = require('./api/config/database')
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: true
-})
+// const { Pool } = require('pg')
+
+// const pool = new Pool({
+//     connectionString: 'postgresql://mj:1234@localhost:5432/matcha',
+// })
 
 const app = express()
 
@@ -31,11 +32,17 @@ app.use((req,res,nxt)=>{
     nxt()
 })
 
+//Error reporting on behalf of idle clients
+pool.on('error',(err, client)=>{
+    console.error('Error Happened' . err)
+    exit(-1)
+})
+
 app.use('/user',userRoutes)
 
 //Catches Unhandled Routes
 app.use((req,res,nxt)=>{
-    const err = new Error('Error!!!')
+    const err = new Error('Error..!!!')
     err.status = 404
     nxt(err)
 })
