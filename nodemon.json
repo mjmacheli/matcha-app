@@ -1,0 +1,5 @@
+{
+    "env":{
+        "DATABASE_URL": "postgres://mj:1234@localhost:5432/test_db"
+    }
+}

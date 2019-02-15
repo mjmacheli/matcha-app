@@ -6,12 +6,6 @@ const morgan = require('morgan')
 
 const pool = require('./api/config/database')
 
-// const { Pool } = require('pg')
-
-// const pool = new Pool({
-//     connectionString: 'postgresql://mj:1234@localhost:5432/matcha',
-// })
-
 const app = express()
 
 const userRoutes = require('./api/routes/user')
