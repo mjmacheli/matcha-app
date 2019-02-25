@@ -1,0 +1,126 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+
+body{
+	width: 60em;
+	margin: auto;
+}
+
+a{
+	text-decoration: none;
+}
+
+/* Main Grid */
+#container{
+	display: grid;
+	grid-template-rows: 10% 80% 10%;
+}
+
+/* Main Nav */
+header{
+	height: 100%;
+	background: gray;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowwrap;
+	justify-content: space-between;
+}
+
+nav ul{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: flex-end;
+	alight-content: center;
+	list-style-type: none;
+	padding: 1em;
+}
+
+nav ul li{
+	padding: 0 1em;
+	height: 100%;
+}
+
+/* Body */
+
+
+#main-content{
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-gap: 0px;
+	grid-auto-columns: max(auto);
+	justify-content: center;
+}
+
+#user-info{
+	text-align: center;
+	padding: .8em;
+}
+
+#profile-img{
+	width: 15em;
+	display: block;
+	margin: 0 auto;
+
+}
+
+li{
+	list-style-type: none;
+}
+
+#user-info li:nth-child(even){
+	background: pink;
+}
+
+#gallery{
+	display: grid;
+	justify-content: center;
+	align-items: stretch;
+	grid-template-columns: auto auto;
+	grid-gap: 0;
+	grid-auto-flow: row;
+}
+
+#gallery img{
+	width: 10em;
+}
+
+#users{
+	padding: .5em 0 0 2em;;
+	/* background: green; */
+}
+
+#users h1{
+	text-align: center;
+	padding: .5em;
+}
+
+#potential-match{
+	border: .05em yellow solid;
+	border-radius: 0 0 .8em .8em;
+}
+
+#match-image{
+	width: 20em;
+}
+
+#match-info{
+	text-align: center;
+	padding: 1.5em 0;
+}
+
+ol{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+	padding: .5em;
+}
+
+/* Footer */
+footer{
+	background-color: pink;
+	padding: 1em;
+	text-align: center;
+}

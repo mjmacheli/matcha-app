@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://bootswatch.com/4/materia/bootstrap.min.css">
+    <link rel="stylesheet" href="css/login.css">
+    <title>Login</title>
+</head>
+
+<body>
+    <div class="container">
+        <form id='form-login'>
+            <div class="alert alert-dismissible alert-warning">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4 class="alert-heading">Bro!</h4>
+                <p class="mb-0">Incorrect Username or Password, Click <a href="#" class="alert-link">Here</a> to change
+                    it</p>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" required class="form-control" id="username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" required class="form-control" id="password" placeholder="Password">
+            </div>
+            <button type="submit" class="btn btn-secondary">Login</button>
+            <button type="submit" class="btn btn-secondary">Register</button>
+
+        </form>
+    </div>
+
+    <script src='js/login.js'></script>
+</body>
+
+</html>
