@@ -9,23 +9,17 @@
 </head>
 <body>
 	<div class="container">
+        <div id="bedge">
+            <h1 id="response"></h1>
+        </div>
+        <h1 id="heading">Register</h1>
 		
 		<form id="registeration">
-			
-            <label for="name">Name</label>
-            <input type="text" id="name" placeholder="Name">
-
-            <label for="surname">Surname</label>
-            <input type="text" id="surname" placeholder="Surname">
-
-            <label for="surname">Email</label>
-            <input type="text" id="email" placeholder="Email">
-
-            <label for="surname">Username</label>
-            <input type="text" id="username" placeholder="Username">
-
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Password">
+			<input type="text" id="name" required placeholder="Name">
+            <input type="text" id="surname" required placeholder="Surname">
+            <input type="text" id="email" required placeholder="Email">
+            <input type="text" id="username" required placeholder="Username">
+            <input type="password" id="password" required placeholder="Password">
 
             <button type='submit' id="btn-register">Register</button>
 

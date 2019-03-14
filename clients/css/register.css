@@ -2,3 +2,20 @@ form{
 	display: grid;
 	padding: 1em;
 }
+
+h1{
+	text-align: center;
+}
+
+input{
+	margin: .4em;
+	padding: 1em;
+}
+
+button{
+	padding: .8em;
+	width: 25%;
+	margin: 1em auto;
+	border-radius: 5px;
+}
+

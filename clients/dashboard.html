@@ -10,7 +10,7 @@
     <meta name='keywords' content='Matcha,WeThinkCode,WTC,eBae,Love'>
     <meta name='Author' content='MJ Macheli'>
     <link rel="stylesheet" href="css/dashboard.css">
-    <title>Dashboard</title>
+    <title></title>
 </head>
 
 <body>
@@ -39,16 +39,42 @@
               <div class="profile-pic">
                 <img src="https://i.stack.imgur.com/l60Hf.png" alt="" id="profile-img">
               </div>
+              <span class="edit-info">edit</span>
+              
+              <!-- Edit information Modal  -->
+                <div id="info-modal">
+                    <span class="close">&times;</span>
+                    <h1>Edit info</h1>
+
+                    <form id="frm-edit">
+                        <fieldset>
+                            <legend>User Info</legend>
+                            <input type="text" name="name" placeholder="First name">
+                            <input type="text" name="surname" placeholder="Last name">
+                            <input type="text" name="email" placeholder="email">
+                            <input type="text" name="username" placeholder="username">
+                            <input type="password" name="password" placeholder="password">
+                            <textarea name="bio" id="bio" cols="30" rows="10"></textarea>
+                        </fieldset>
+                        <button type="submit" name="submit">Save</button>
+                    </form>
+                    
+                </div>
+
                 <!-- User details -->
                 <ul id='user-info'>
-                    <li id='name'>Name: Name</li>
-                    <li id='surname'>Surname: Surname</li>
-                    <ul id="interests">
-                        <li class="interest">Interest 1</li>
-                        <li class="interest">Interest 2</li>
-                        <li class="interest">Thirst Interest</li>
-                        <li class="interest">Forth Intetersts</li>
-                    </ul>
+                    <li id='name'>Name: </li>
+                    <li id='surname'>Surname: </li>
+                    <li id='email'>Email: </li>
+                </ul>
+
+                <ul id="user-interests">
+                    <li class="interest">Interest</li>
+                    <li class="interest">Intst2</li>
+                    <li class="interest">Interest</li>
+                    <li class="interest">Hello world</li>
+                    <li class="interest">we</li>
+                    <li class="interest">Interest</li>
                 </ul>
                 <!-- Gallery -->
                 <div id="gallery">
@@ -73,8 +99,7 @@
                     <li id='name'>Name: Name</li>
                     <li id='surname'>Surname: Surname</li>
                     <ul id="interests">
-                        <li class="interest">Interest 1</li>
-                        <li class="interest">Interest 2</li>
+                        <li class="interest">               <li class="interest">Interest 2</li>
                         <li class="interest">Thirst Interest</li>
                         <li class="interest">Forth Intetersts</li>
                     </ul>

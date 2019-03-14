@@ -252,7 +252,32 @@ router.post('/dashboard', auth, (req, res, nxt) => {
             return (res.status(200).json({ profile: result.rows[0] }))
         }
     })
+})
 
+router.patch('/update', (req, res)=>{
+    const data={
+        id: req.body.id,
+        name: req.body.name,
+        surname: req.body.surname,
+        email: req.body.email,
+        username: req.body.username,
+        password: req.body.password,
+        gender: req.body.gender,
+        bio: req.body.bio
+    }
+    const query ={
+        name: 'edit-info',
+        text: `update users set name=$1,surname=$2, email=$3, username=$4, password=$5, gender=$6, bio=$7 where id=$8`,
+        values: [data.name, data.surname, data.email, data.username, data.password, data.gender, data.bio, data.id]
+    }
+
+    pool.query(query, (err, result)=>{
+        if(err){
+            throw err
+        }else{
+            return (res.status(202).json({messsage:"Edited"}))
+        }
+    })
 })
 
 function getlocation(ip) {

@@ -33,7 +33,7 @@ nav ul{
 	flex-direction: row;
 	flex-wrap: nowrap;
 	justify-content: flex-end;
-	alight-content: center;
+	align-content: center;
 	list-style-type: none;
 	padding: 1em;
 }
@@ -44,8 +44,6 @@ nav ul li{
 }
 
 /* Body */
-
-
 #main-content{
 	display: grid;
 	grid-template-columns: auto auto;
@@ -70,9 +68,9 @@ li{
 	list-style-type: none;
 }
 
-#user-info li:nth-child(even){
+/* #user-info li:nth-child(even){
 	background: pink;
-}
+} */
 
 #gallery{
 	display: grid;
@@ -116,6 +114,23 @@ ol{
 	flex-direction: row;
 	justify-content: space-evenly;
 	padding: .5em;
+}
+
+/* Interests */
+#user-interests{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+#user-interests .interest{
+	display: flex;
+	flex-direction: row-reverse;
+	line-height: 60%;
+	margin: .2em;
+	padding: .2em .8em;
+	border-radius: 4px;
+	background-color: pink;
 }
 
 /* Footer */
