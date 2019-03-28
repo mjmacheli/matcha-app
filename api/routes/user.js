@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const pool = require('../config/database')
+const fs = require('fs')
 
 const auth = require('../filter/auth')
 
@@ -261,22 +262,48 @@ router.patch('/update', (req, res)=>{
         surname: req.body.surname,
         email: req.body.email,
         username: req.body.username,
-        password: req.body.password,
         gender: req.body.gender,
+        password: req.body.password,
         bio: req.body.bio
     }
-    const query ={
-        name: 'edit-info',
-        text: `update users set name=$1,surname=$2, email=$3, username=$4, password=$5, gender=$6, bio=$7 where id=$8`,
-        values: [data.name, data.surname, data.email, data.username, data.password, data.gender, data.bio, data.id]
+
+    bcrypt.hash(data.password, 10, (err, hash)=>{
+        if(err)throw err
+
+        const query ={
+            name: 'edit-info',
+            text: `update users set name=$1,surname=$2, email=$3, username=$4,password=$5, gender=$6, bio=$7 where id=$8`,
+            values: [data.name, data.surname, data.email, data.username, hash, data.gender, data.bio, data.id]
+        }
+
+        pool.query(query, (err, result)=>{
+            if(err){
+                throw err
+            }else{
+                return (res.status(202).json({messsage:"Edited"}))
+            }
+        })
+    })    
+})
+
+router.patch('/upload', (req, res)=>{
+    const data = {
+        id: req.body.id,
+        pic1: req.body.pic1,
+        pic2: req.body.pic2,
+        pic3: req.body.pic3,
+        pic4: req.body.pic4,
+        pic5: req.body.pic5
+    }
+    const query = {
+        name: 'upload-img',
+        text: 'update users set pic1=$1, pic2=$2, pic3=$3, pic4=$4, pic5=$5 where id=$6',
+        values: [data.pic1, data.pic2, data.pic3, data.pic4, data.pic5, data.id]
     }
 
     pool.query(query, (err, result)=>{
-        if(err){
-            throw err
-        }else{
-            return (res.status(202).json({messsage:"Edited"}))
-        }
+        if(err) throw err
+        return(res.status(201).json({message: "Uploaded"}))
     })
 })
 

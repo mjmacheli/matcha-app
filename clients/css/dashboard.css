@@ -71,6 +71,10 @@ li{
 /* #user-info li:nth-child(even){
 	background: pink;
 } */
+#upload{
+	padding: 1.5em;
+	font-size: 1em;
+}
 
 #gallery{
 	display: grid;
