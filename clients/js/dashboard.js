@@ -9,10 +9,14 @@ const email = document.querySelector('#email')
 const bio = document.querySelector('#bio')
 
 const upload = document.querySelector('#upload')
+const infoEdit = document.querySelector('#edit-info')
+const modal = document.querySelector('#info-modal')
+const close = document.querySelector('#close')
+
+const interests = document.querySelector('#user-interests')
 
 var profileData = null;
 var aryImages = []
-console.log(Array.isArray(aryImages))
 
 window.addEventListener('load', loadData(id))
 
@@ -32,9 +36,28 @@ const url = 'http://localhost:3000/user/dashboard'
         .then(res => {
             profileData = res.profile
             render(profileData)
-            console.log(profileData)
+            getUserInterests(id)
         })
 }
+
+//Modal Control
+infoEdit.addEventListener('click', (e)=>{
+    modal.style.display = 'grid'
+})
+
+close.addEventListener('click', ()=>{
+    modal.style.display = 'none'
+})
+
+frmEdit.addEventListener('submit', ()=>{
+    modal.style.display = 'none'
+})
+
+window.addEventListener('click', (e)=>{
+    if (e.target === frmEdit) {
+        modal.style.display = 'none';
+    }
+})
 
 function render(data) {
     document.title += `Welcome\t  ${data.username}`
@@ -107,6 +130,7 @@ function saveImages(images){
     }
 
     const url = 'http://localhost:3000/user/upload'
+
     fetch(url, {
         method: 'PATCH',
         headers: {
@@ -115,6 +139,34 @@ function saveImages(images){
         body: JSON.stringify(data)
     })
     .then(res=>res.json())
-    .then(res=>console.log(res))
+    .then(res=>console.log(res.interests))
     .catch(err=>console.error(err))
+    
+}
+
+function getUserInterests(id){
+    const url = 'http://localhost:3000/user/getUserInterests'
+
+    return (fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ id: id })
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        //Cut out ID and Usr ID: Not Ideal but hey maan..
+        const ints = Object.values(res.interests).slice(1, -1)
+        ints.forEach((interest)=>{
+            const listItem = document.createElement('li')
+            listItem.classList.add('interest')
+
+            const interestNode = document.createTextNode(interest)
+            listItem.appendChild(interestNode)
+            interests.appendChild(listItem)
+        })
+    })
+    .catch(err=>console.error(err)))
 }

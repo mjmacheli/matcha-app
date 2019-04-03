@@ -68,9 +68,6 @@ li{
 	list-style-type: none;
 }
 
-/* #user-info li:nth-child(even){
-	background: pink;
-} */
 #upload{
 	padding: 1.5em;
 	font-size: 1em;
@@ -119,6 +116,34 @@ ol{
 	justify-content: space-evenly;
 	padding: .5em;
 }
+
+/* Edit info Modal */
+#info-modal{
+	display: none;
+	position: fixed;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: rgba(27, 29, 28, 0.534);
+	padding: 1em;
+	width: 55%;
+}
+
+#info-modal input{
+	display: flex;
+	flex-wrap: nowrap;
+	padding: .7em;
+	margin: .4em;
+	border-radius: 2px;
+	border: 0;
+}
+
+/* #info-modal textarea{
+
+} */
 
 /* Interests */
 #user-interests{

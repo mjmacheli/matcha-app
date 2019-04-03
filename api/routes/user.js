@@ -234,12 +234,18 @@ async function verifyEmail(email) {
     console.log("Message sent: %s", info.messageId);
 }
 
+
+
 router.post('/dashboard', auth, (req, res, nxt) => {
     //Prepare query
     const query = {
         // give the query a unique name
         name: 'welcome',
-        text: 'SELECT * FROM users WHERE id = $1',
+        text: `select users.id, users.name, users.surname, 
+                users.email, users.username, users.password, 
+                users.bio, users.auth, users.gender, users.pic1, 
+                users.pic2, users.pic3, users.pic4, users.pic5
+                from users where users.id=$1;`,
         values: [req.body.id],
         rowMode: 'object'
     }
@@ -249,8 +255,34 @@ router.post('/dashboard', auth, (req, res, nxt) => {
         if (err) {
             throw err
         } else {
-            console.log(result.rows[0])
-            return (res.status(200).json({ profile: result.rows[0] }))
+            // formatUserInfo(result.rows[0])
+            return (res.status(200).json({profile: result.rows[0]}))
+        }
+    })
+})
+
+
+
+router.post('/getUserInterests', auth, (req, res, nxt) => {
+    //Prepare query
+    const query = {
+        // give the query a unique name
+        name: 'images',
+        text: `select interests.interest_id, interests.int1, 
+                interests.int3, interests.int4, 
+                interests.int5, interests.user_id 
+                from interests where interests.user_id=$1;`,
+        values: [req.body.id],
+        rowMode: 'object'
+    }
+
+    //Get user
+    pool.query(query, (err, result) => {
+        if (err) {
+            throw err
+        } else {
+            // formatUserInfo(result.rows[0])
+            return (res.status(200).json({interests: result.rows[0]}))
         }
     })
 })
@@ -303,10 +335,9 @@ router.patch('/upload', (req, res)=>{
 
     pool.query(query, (err, result)=>{
         if(err) throw err
-        return(res.status(201).json({message: "Uploaded"}))
+        return(res.status(201).json({data}))
     })
 })
-
 function getlocation(ip) {
     return (iplocation(ip).then(res => console.log(res)).catch(err => console.error('Unable to get location')))
 }

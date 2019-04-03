@@ -52,5 +52,4 @@ app.use((err,req,res,nxt)=>{
     })
 })
 
-
 module.exports = app;
