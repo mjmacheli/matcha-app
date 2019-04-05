@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const pool = require('../config/database')
-const fs = require('fs')
 
 const auth = require('../filter/auth')
 
@@ -11,35 +10,13 @@ const jwt = require('jsonwebtoken')
 
 const nodemailer = require('nodemailer')
 
-const FILE_SIZE = 5242880
+const geolib = require('geolib')
 
-const multer = require('multer')
+const ip2location = require('ip-to-location')
 
-const storage = multer.diskStorage({
-    destination: function (req, file, callback) {
-        callback(null, 'uploads/')
-    },
-    filename: function (req, file, callback) {
-        callback(null, Date.now().toString() + '.jpg')
-    }
-})
+const radius = 10000
 
-const filter = (req, file, callback) => {
-    if (file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/PNG') {
-        callback(null, true)
-    } else {
-        callback(new Error({ message: 'Not with file extension' }))
-    }
-}
-
-const media = multer({
-    storage: storage, limits: {
-        fileSize: FILE_SIZE
-    },
-    fileFilter: filter
-})
-
-const iplocation = require('iplocation').default;
+const ip = '155.93.241.102'
 
 router.post('/login', (req, res, nxt) => {
     const username = req.body.username
@@ -48,7 +25,7 @@ router.post('/login', (req, res, nxt) => {
     //get client ip
     const ip = req.ip;
 
-    console.log(ip)
+    // console.log(ip)
 
     //Prepare query
     const query = {
@@ -234,8 +211,6 @@ async function verifyEmail(email) {
     console.log("Message sent: %s", info.messageId);
 }
 
-
-
 router.post('/dashboard', auth, (req, res, nxt) => {
     //Prepare query
     const query = {
@@ -261,16 +236,14 @@ router.post('/dashboard', auth, (req, res, nxt) => {
     })
 })
 
-
-
 router.post('/getUserInterests', auth, (req, res, nxt) => {
     //Prepare query
     const query = {
         // give the query a unique name
         name: 'images',
-        text: `select interests.interest_id, interests.int1, 
+        text: `select interests.id, interests.int1, 
                 interests.int3, interests.int4, 
-                interests.int5, interests.user_id 
+                interests.user_id 
                 from interests where interests.user_id=$1;`,
         values: [req.body.id],
         rowMode: 'object'
@@ -338,15 +311,56 @@ router.patch('/upload', (req, res)=>{
         return(res.status(201).json({data}))
     })
 })
+
+router.post('/suggest', (req, res)=>{
+    const query = {
+        name: 'suitors',
+        text: 'SELECT users.id, users.lat, users.lon FROM users where users.gender=$1',
+        values: ["Female"]
+    }
+
+    pool.query(query, (err, result)=>{
+        if(err) throw err
+        return (getCloseUsers(result.rows))
+    })
+})
+
+function getCloseUsers(result){
+    //filter profiles by localtion
+    var suggestions = []
+    result.forEach((user)=>{
+        if(geolib.isPointInCircle({latitude: -33.915401, longitude: 18.419445}, {latitude: user.lat, longitude: user.lon}, 10000)){
+            // getUserProfile(user.id)
+            pool.query(`select * from users where users.id=${user.id}`, (err, result) => {
+                if (err) {
+                    throw err
+                } else {
+                    suggestions.push(result.rows[0])
+                    // console.log(suggestions)
+                    console.log("suggestions")
+                }
+            })
+        }
+    })
+    console.log("suggestions")
+    return (suggestions)
+}
+
+function suggestUsers(home, matches, prefs='Males'){
+    var potentials = []
+    matches.forEach((match)=>{
+        if(geolib.isPointInCircle(home, match, radius)){
+            potentials.push(match)
+        }
+    })
+   return (potentials)
+}
+
 function getlocation(ip) {
-    return (iplocation(ip).then(res => console.log(res)).catch(err => console.error('Unable to get location')))
+    return (ip2location.fetch(ip).then(res => {console.log(res)}))
 }
 
 module.exports = router
-
-// $qry = "SELECT *,(((acos(sin((".$latitude."*pi()/180)) * sin((`latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((`Latitude`*pi()/180)) * cos(((".$longitude."- `Longitude`)*pi()/180))))*180/pi())*60*1.1515*1.609344) as distance
-// FROM `users`
-// WHERE distance >= ".$distance."
 
 // https://locationiq.com/docs#forward-geocoding
 
