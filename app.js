@@ -20,7 +20,7 @@ app.use(express.json())
 
 app.use((req,res,nxt)=>{
     //CORS Error Handling
-    res.header('Access-Control-Allow-Origin', '*')
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5500')
     res.header('Access-Control-Allow-Headers','Origin,Accept,Authorization,Content-Type,X-Requested-With')
     if(req.method==='OPTIONS'){
         res.header('Acess-Control-Allow-Methods','PATCH,GET,POST,DELETE')

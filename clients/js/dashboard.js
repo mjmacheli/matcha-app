@@ -1,5 +1,5 @@
-const id = sessionStorage.getItem('id')
-const token = sessionStorage.getItem('token')
+const id = localStorage.getItem('id')
+const token = localStorage.getItem('token')
 const frmEdit = document.querySelector('#frm-edit')
 const gallery = document.querySelectorAll('.img-gallery')
 
@@ -14,11 +14,20 @@ const modal = document.querySelector('#info-modal')
 const close = document.querySelector('#close')
 
 const interests = document.querySelector('#user-interests')
+const logout = document.querySelector('#logout')
 
 var profileData = null;
 var aryImages = []
 
-window.addEventListener('load', loadData(id))
+window.addEventListener('load', () =>{
+    localStorage['length'] ? loadData(id) : window.location = './login.html'
+})
+
+//Clear Localstotage as Logout
+logout.addEventListener('click', ()=>{
+    localStorage.clear()
+    window.location = './login.html'
+})
 
 frmEdit.addEventListener('submit', profileUpdate)
 

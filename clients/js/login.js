@@ -24,8 +24,8 @@ function login(e) {
     .then(res => res.json())
     .then(result => {
       if (result.token) {
-        sessionStorage.setItem('id', result.id)
-        sessionStorage.setItem('token', result.token)
+        localStorage.setItem('id', result.id)
+        localStorage.setItem('token', result.token)
         window.location = './dashboard.html'
       } else {
         alett.style.display = 'block'

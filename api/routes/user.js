@@ -51,7 +51,7 @@ router.post('/login', (req, res, nxt) => {
                     },
                         'private_key',
                         {
-                            expiresIn: '1hr'
+                            expiresIn: '12hr'
                         })
                     return (res.status(200).json({ id: result.rows[0].id, token: token }))
                 } else {
@@ -261,7 +261,7 @@ router.post('/getUserInterests', auth, (req, res, nxt) => {
 })
 
 router.patch('/update', (req, res)=>{
-    const data={
+    const data = {
         id: req.body.id,
         name: req.body.name,
         surname: req.body.surname,
@@ -312,7 +312,7 @@ router.patch('/upload', (req, res)=>{
     })
 })
 
-router.post('/suggest', (req, res)=>{
+router.get('/suggest', (req, res)=>{
     const query = {
         name: 'suitors',
         text: 'SELECT users.id, users.lat, users.lon FROM users where users.gender=$1',
@@ -321,28 +321,26 @@ router.post('/suggest', (req, res)=>{
 
     pool.query(query, (err, result)=>{
         if(err) throw err
-        return (getCloseUsers(result.rows))
+        // return (getCloseUsers(result.rows))
+        const tmp = getCloseUsers(result.rows)
+        console.log(tmp)
     })
 })
 
 function getCloseUsers(result){
-    //filter profiles by localtion
+    // filter profiles by localtion
     var suggestions = []
     result.forEach((user)=>{
         if(geolib.isPointInCircle({latitude: -33.915401, longitude: 18.419445}, {latitude: user.lat, longitude: user.lon}, 10000)){
             // getUserProfile(user.id)
             pool.query(`select * from users where users.id=${user.id}`, (err, result) => {
-                if (err) {
-                    throw err
-                } else {
-                    suggestions.push(result.rows[0])
-                    // console.log(suggestions)
-                    console.log("suggestions")
-                }
+                if (err)throw err
+                // suggestions.push(result.rows[0])
+                console.log(result.rows[0])
             })
+            console.log("suggestions...")
         }
     })
-    console.log("suggestions")
     return (suggestions)
 }
 
@@ -372,3 +370,4 @@ module.exports = router
 // https://medium.freecodecamp.org/html-tables-all-there-is-to-know-about-them-d1245980ef96
 
 // https://medium.freecodecamp.org/how-i-got-a-developer-job-abroad-my-journey-from-marketing-to-tech-fdf75e610c1
+// https://www.chrisblakely.dev/the-10-minute-road-map-to-becoming-a-junior-full-stack-web-developer/
