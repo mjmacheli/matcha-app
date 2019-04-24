@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const pool = require('../config/database')
+const pool = require('../configs/database')
 
 const auth = require('../filter/auth')
 
@@ -226,17 +226,12 @@ router.post('/dashboard', auth, (req, res, nxt) => {
     }
 
     //Get user
-    pool.query(query, (err, result) => {
-        if (err) {
-            throw err
-        } else {
-            // formatUserInfo(result.rows[0])
-            return (res.status(200).json({profile: result.rows[0]}))
-        }
-    })
+    pool.query(query)
+        .then(res.status(200))
+        .then(Result => res.json({profile: Result['rows']}))
 })
 
-router.post('/getUserInterests', auth, (req, res, nxt) => {
+router.post('/interests', auth, (req, res) => {
     //Prepare query
     const query = {
         // give the query a unique name
@@ -250,17 +245,12 @@ router.post('/getUserInterests', auth, (req, res, nxt) => {
     }
 
     //Get user
-    pool.query(query, (err, result) => {
-        if (err) {
-            throw err
-        } else {
-            // formatUserInfo(result.rows[0])
-            return (res.status(200).json({interests: result.rows[0]}))
-        }
-    })
+    pool.query(query)
+        .then(res.status(200))
+        .then( Result => res.json({"interests": Result['rows']}))
 })
 
-router.patch('/update', (req, res)=>{
+router.patch('/update', (req, res) => {
     const data = {
         id: req.body.id,
         name: req.body.name,
@@ -272,26 +262,26 @@ router.patch('/update', (req, res)=>{
         bio: req.body.bio
     }
 
-    bcrypt.hash(data.password, 10, (err, hash)=>{
-        if(err)throw err
+    bcrypt.hash(data.password, 10, (err, hash) => {
+        if (err) throw err
 
-        const query ={
+        const query = {
             name: 'edit-info',
             text: `update users set name=$1,surname=$2, email=$3, username=$4,password=$5, gender=$6, bio=$7 where id=$8`,
             values: [data.name, data.surname, data.email, data.username, hash, data.gender, data.bio, data.id]
         }
 
-        pool.query(query, (err, result)=>{
-            if(err){
+        pool.query(query, (err, result) => {
+            if (err) {
                 throw err
-            }else{
-                return (res.status(202).json({messsage:"Edited"}))
+            } else {
+                return (res.status(202).json({ messsage: "Edited" }))
             }
         })
-    })    
+    })
 })
 
-router.patch('/upload', (req, res)=>{
+router.patch('/upload', (req, res) => {
     const data = {
         id: req.body.id,
         pic1: req.body.pic1,
@@ -306,35 +296,35 @@ router.patch('/upload', (req, res)=>{
         values: [data.pic1, data.pic2, data.pic3, data.pic4, data.pic5, data.id]
     }
 
-    pool.query(query, (err, result)=>{
-        if(err) throw err
-        return(res.status(201).json({data}))
+    pool.query(query, (err, result) => {
+        if (err) throw err
+        return (res.status(201).json({ data }))
     })
 })
 
-router.get('/suggest', (req, res)=>{
+router.get('/suggest', (req, res) => {
     const query = {
         name: 'suitors',
         text: 'SELECT users.id, users.lat, users.lon FROM users where users.gender=$1',
         values: ["Female"]
     }
 
-    pool.query(query, (err, result)=>{
-        if(err) throw err
+    pool.query(query, (err, result) => {
+        if (err) throw err
         // return (getCloseUsers(result.rows))
         const tmp = getCloseUsers(result.rows)
         console.log(tmp)
     })
 })
 
-function getCloseUsers(result){
+function getCloseUsers(result) {
     // filter profiles by localtion
     var suggestions = []
-    result.forEach((user)=>{
-        if(geolib.isPointInCircle({latitude: -33.915401, longitude: 18.419445}, {latitude: user.lat, longitude: user.lon}, 10000)){
+    result.forEach((user) => {
+        if (geolib.isPointInCircle({ latitude: -33.915401, longitude: 18.419445 }, { latitude: user.lat, longitude: user.lon }, 10000)) {
             // getUserProfile(user.id)
             pool.query(`select * from users where users.id=${user.id}`, (err, result) => {
-                if (err)throw err
+                if (err) throw err
                 // suggestions.push(result.rows[0])
                 console.log(result.rows[0])
             })
@@ -344,18 +334,18 @@ function getCloseUsers(result){
     return (suggestions)
 }
 
-function suggestUsers(home, matches, prefs='Males'){
+function suggestUsers(home, matches, prefs = 'Males') {
     var potentials = []
-    matches.forEach((match)=>{
-        if(geolib.isPointInCircle(home, match, radius)){
+    matches.forEach((match) => {
+        if (geolib.isPointInCircle(home, match, radius)) {
             potentials.push(match)
         }
     })
-   return (potentials)
+    return (potentials)
 }
 
 function getlocation(ip) {
-    return (ip2location.fetch(ip).then(res => {console.log(res)}))
+    return (ip2location.fetch(ip).then(res => { console.log(res) }))
 }
 
 module.exports = router
