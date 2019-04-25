@@ -1,5 +1,4 @@
-const express = require('express')
-const router = express.Router()
+const Router = require('express-promise-router')
 const pool = require('../config/database')
 
 const auth = require('../filter/auth')
@@ -18,132 +17,140 @@ const radius = 10000
 
 const ip = '155.93.241.102'
 
-router.post('/login', (req, res, nxt) => {
-    const username = req.body.username
-    const password = req.body.password
+const router = new Router()
 
+router.post('/login', async (req, res, nxt) => {
+    const { username, password } = req.body
     //get client ip
     const ip = req.ip;
-
-    // console.log(ip)
 
     //Prepare query
     const query = {
         // give the query a unique name
         name: 'login',
         text: 'SELECT * FROM users WHERE username = $1',
-        values: [username],
+        values: [ username ],
         rowMode: 'object'
     }
 
     //Get user
-    pool.query(query, (err, result) => {
-        if (err) {
-            throw err
-        } else if (result.rows[0]) {
-            console.log(result.rows[0])
-            bcrypt.compare(password, result.rows[0].password, (err, ret) => {
-                if (ret) {
-                    const token = jwt.sign({
-                        id: result.rows[0].id,
-                        email: result.rows[0].email,
-                        username: result.rows[0].username
-                    },
-                        'private_key',
-                        {
-                            expiresIn: '12hr'
-                        })
-                    return (res.status(200).json({ id: result.rows[0].id, token: token }))
-                } else {
-                    return (res.status(401).json({ message: 'Username / Password incoprrect' }))
-                }
-            })
-        } else {
-            return (res.status(401).json({ message: 'Username / Password incoprrect' }))
+    try {
+        const { rows, rowCount } = await pool.query(query)
+        if ( !rowCount ) res.status( 401 ).json({ message: 'Username / Password incoprrect' })
+        else {
+            //Check Password against bcrypt - if True, sign a token otherwise return 401
+            const checkPw = await bcrypt.compare(password, rows[0].password)
+            
+            if ( checkPw ){
+                const { id, username, email } = rows[0]
+                const token = await jwt.sign({ id, username, email },
+                    'private_key',
+                    {
+                        expiresIn: '12hr'
+                    })
+                res.status(200).json({ id, token })
+            } else res.status(401).json({ message: 'Username / Password incoprrect' })         
         }
-    })
+    } catch ( err ){
+        nxt( err )
+    }
 })
 
-router.post('/register', (req, res, nxt) => {
-    const profile = ({
-        name: req.body.name,
-        surname: req.body.surname,
-        email: req.body.email,
-        username: req.body.username,
-        password: req.body.password,
-        gender: req.body.gender,
-        bio: req.body.bio,
-        interests: req.body.interests,
-        location: req.body.location
-    })
+
+
+router.post('/register', async (req, res, nxt) => {
+    
+    const { body } = req
 
     // Check Diplicate Username
-    const query1 = {
+    const query = {
         // give the query a unique name
         name: 'check-username',
         text: 'SELECT * FROM users WHERE username = $1',
-        values: [profile.username],
+        values: [ body.username ],
         rowMode: 'object'
     }
 
-    pool.query(query1, (err, ret) => {
-        if (err) throw err
-        if (ret.rows.length > 0) {
-            return (res.status(409).json({
-                message: 'Username Already Registered'
-            }))
-        } else {
-            //Check duplicate email
-            const query = {
-                // give the query a unique name
-                name: 'check-email',
-                text: 'SELECT * FROM users WHERE email = $1',
-                values: [profile.email],
-                rowMode: 'object'
-            }
+    try {
+        //Check If username Exists
+        const { rowCount } = await pool.query( query )
+        const emailExist = await checkEmailExists( body )
+        console.log(emailExist)
+    } catch ( err ) {
+        nxt( err )
+    }
 
-            pool.query(query, (err, ret) => {
-                if (err) throw err
-                if (ret.rows.length > 0) {
-                    return (res.status(409).json({
-                        message: 'Email Already Registered'
-                    }))
-                } else {
-                    //Send query
-                    bcrypt.hash(req.body.password, 10, (err, hash) => {
-                        if (!err) {
-                            const query = {
-                                name: 'register',
-                                text: 'insert into users(name,surname,email,username,password) values($1,$2,$3,$4,$5);',
-                                values: [profile.name, profile.surname, profile.email, profile.username, hash]
-                            }
-
-                            //Get user
-                            pool.query(query, (err, res) => {
-                                if (err) {
-                                    throw err
-                                }
-                                console.log(res.rows)
-                            })
-                            //Send Verification Mail
-                            verifyEmail(profile.email).catch(console.error);
-                            res.status(201)
-                            res.json({
-                                message: 'Registered',
-                                profile: profile
-                            })
-
-                        } else {
-                            return (res.status(500).json({
-                                error: new Error
-                            }))
-                        }
-                    })
-                }
-            })
+    async function checkDuplicates( body ){
+        const query = {
+            // give the query a unique name
+            name: 'check-email',
+            text: 'SELECT * FROM users WHERE email = $1',
+            values: [ body.email ],
+            rowMode: 'object'
         }
-    })
-    //bcrypt here
+
+        const { rowCount } = await pool.query( query )
+        return rowCount
+    }
+
+    // const exists = await pool.query(query1, (err, ret) => {
+    //     if (err) throw err
+    //     if (ret.rows.length > 0) {
+    //         return (res.status(409).json({
+    //             message: 'Username Already Registered'
+    //         }))
+    //     } else {
+    //         //Check duplicate email
+    //         const query = {
+    //             // give the query a unique name
+    //             name: 'check-email',
+    //             text: 'SELECT * FROM users WHERE email = $1',
+    //             values: [profile.email],
+    //             rowMode: 'object'
+    //         }
+
+    //         pool.query(query, (err, ret) => {
+    //             if (err) throw err
+    //             if (ret.rows.length > 0) {
+    //                 return (res.status(409).json({
+    //                     message: 'Email Already Registered'
+    //                 }))
+    //             } else {
+    //                 //Send query
+    //                 bcrypt.hash(req.body.password, 10, (err, hash) => {
+    //                     if (!err) {
+    //                         const query = {
+    //                             name: 'register',
+    //                             text: 'insert into users(name,surname,email,username,password) values($1,$2,$3,$4,$5);',
+    //                             values: [profile.name, profile.surname, profile.email, profile.username, hash]
+    //                         }
+
+    //                         //Get user
+    //                         pool.query(query, (err, res) => {
+    //                             if (err) {
+    //                                 throw err
+    //                             }
+    //                             console.log(res.rows)
+    //                         })
+    //                         //Send Verification Mail
+    //                         verifyEmail(profile.email).catch(console.error);
+    //                         res.status(201)
+    //                         res.json({
+    //                             message: 'Registered',
+    //                             profile: profile
+    //                         })
+
+    //                     } else {
+    //                         return (res.status(500).json({
+    //                             error: new Error
+    //                         }))
+    //                     }
+    //                 })
+    //             }
+    //         })
+    //     }
+    // })
+    // //bcrypt here
 })
 
 router.patch('/reset/:username', (req, res, nxt) => {
@@ -211,11 +218,9 @@ async function verifyEmail(email) {
     console.log("Message sent: %s", info.messageId);
 }
 
-router.post('/dashboard', auth, (req, res, nxt) => {
+router.post('/dashboard', auth, async (req, res, nxt) => {
     //Prepare query
     const query = {
-        // give the query a unique name
-        name: 'welcome',
         text: `select users.id, users.name, users.surname, 
                 users.email, users.username, users.password, 
                 users.bio, users.auth, users.gender, users.pic1, 
@@ -226,17 +231,17 @@ router.post('/dashboard', auth, (req, res, nxt) => {
     }
 
     //Get user
-    pool.query(query, (err, result) => {
-        if (err) {
-            throw err
-        } else {
-            // formatUserInfo(result.rows[0])
-            return (res.status(200).json({profile: result.rows[0]}))
-        }
-    })
+    try{
+        const { rows } = await pool.query( query )
+        res.status(200)
+        res.json(rows[0])
+    } catch( err ){
+        const error = await nxt(err)
+        res.json({'message': error})
+    } 
 })
 
-router.post('/getUserInterests', auth, (req, res, nxt) => {
+router.post('/interests', auth, async (req, res, nxt) => {
     //Prepare query
     const query = {
         // give the query a unique name
@@ -250,98 +255,95 @@ router.post('/getUserInterests', auth, (req, res, nxt) => {
     }
 
     //Get user
-    pool.query(query, (err, result) => {
-        if (err) {
-            throw err
-        } else {
-            // formatUserInfo(result.rows[0])
-            return (res.status(200).json({interests: result.rows[0]}))
-        }
-    })
+    try{
+        const { rows } = await pool.query( query )
+        res.status(200)
+        res.json(rows[0])
+    } catch ( err ){
+        const error = await nxt( err )
+        res.json({msg: error})
+    }
 })
 
-router.patch('/update', (req, res)=>{
-    const data = {
-        id: req.body.id,
-        name: req.body.name,
-        surname: req.body.surname,
-        email: req.body.email,
-        username: req.body.username,
-        gender: req.body.gender,
-        password: req.body.password,
-        bio: req.body.bio
-    }
+router.patch('/update', auth, async (req, res, nxt)=>{
+    const { body } = req
 
-    bcrypt.hash(data.password, 10, (err, hash)=>{
-        if(err)throw err
+    //Hash the password async then run a query
+    const pw = await bcrypt.hash(body.password, 10)
 
-        const query ={
+    try {
+        const query = {
             name: 'edit-info',
-            text: `update users set name=$1,surname=$2, email=$3, username=$4,password=$5, gender=$6, bio=$7 where id=$8`,
-            values: [data.name, data.surname, data.email, data.username, hash, data.gender, data.bio, data.id]
+            text: `update users set name=$1,surname=$2,
+                email=$3, username=$4,password=$5,
+                gender=$6, bio=$7 where id=$8`,
+            values: [ body.name, body.surname, body.email, body.username, pw, body.gender, body.bio, body.id ]
         }
-
-        pool.query(query, (err, result)=>{
-            if(err){
-                throw err
-            }else{
-                return (res.status(202).json({messsage:"Edited"}))
-            }
-        })
-    })    
+    
+        const msg = await pool.query(query)
+        res.status(202)
+        res.json({message: msg})
+    } catch ( err ){
+        const error = await nxt( err )
+        res.json({ message: error })
+    }  
 })
 
-router.patch('/upload', (req, res)=>{
-    const data = {
-        id: req.body.id,
-        pic1: req.body.pic1,
-        pic2: req.body.pic2,
-        pic3: req.body.pic3,
-        pic4: req.body.pic4,
-        pic5: req.body.pic5
-    }
+router.patch('/upload', auth, async (req, res, nxt)=>{
+    const { body } = req
+
     const query = {
         name: 'upload-img',
         text: 'update users set pic1=$1, pic2=$2, pic3=$3, pic4=$4, pic5=$5 where id=$6',
-        values: [data.pic1, data.pic2, data.pic3, data.pic4, data.pic5, data.id]
+        values: [ body.pic1, body.pic2, body.pic3, body.pic4, body.pic5, body.id ]
     }
 
-    pool.query(query, (err, result)=>{
-        if(err) throw err
-        return(res.status(201).json({data}))
-    })
+    try{
+        const msg = pool.query(query)
+        res.status( 201 )
+        res.json({ msg })
+    } catch ( err ){
+        nxt( err )
+    }
 })
 
-router.get('/suggest', (req, res)=>{
+router.get('/suggest', async (req, res)=>{
     const query = {
         name: 'suitors',
         text: 'SELECT users.id, users.lat, users.lon FROM users where users.gender=$1',
-        values: ["Female"]
+        values: [ 'Female' ]
     }
 
-    pool.query(query, (err, result)=>{
-        if(err) throw err
-        // return (getCloseUsers(result.rows))
-        const tmp = getCloseUsers(result.rows)
-        console.log(tmp)
-    })
+    //Temp Array for testing
+    let tmp = [1,2,3]
+    const { rows } = await pool.query( query )
+    const closest = await getCloseUsers( rows )
+    const suitors = await getPotentialSuits( tmp )
+    console.log(suitors)
 })
 
-function getCloseUsers(result){
+/**
+ * Gets IDs of User's preferred gender: males if user is female
+ */
+function getCloseUsers( result ){
     // filter profiles by localtion
     var suggestions = []
-    result.forEach((user)=>{
-        if(geolib.isPointInCircle({latitude: -33.915401, longitude: 18.419445}, {latitude: user.lat, longitude: user.lon}, 10000)){
-            // getUserProfile(user.id)
-            pool.query(`select * from users where users.id=${user.id}`, (err, result) => {
-                if (err)throw err
-                // suggestions.push(result.rows[0])
-                console.log(result.rows[0])
-            })
-            console.log("suggestions...")
+    result.forEach(( user ) => {
+        if ( geolib.isPointInCircle( { latitude: -33.915401, longitude: 18.419445 }, { latitude: user.lat, longitude: user.lon }, 10000 )){
+            suggestions.push( user[ 'id' ] )
         }
     })
-    return (suggestions)
+    return suggestions
+}
+
+/**
+ * 
+ * @param {*} ids
+ * Queries DB to get All interests from given array of IDs 
+ */
+async function getPotentialSuits( ids ){
+    const intrests = await Promise.all( ids.map( id => ( pool.query('SELECT * FROM interests where id=$1', [ id ] ))))
+    return intrests.map(intr => intr.rows ).flat()
 }
 
 function suggestUsers(home, matches, prefs='Males'){

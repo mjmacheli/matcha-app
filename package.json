@@ -17,6 +17,7 @@
     "bcrypt": "^3.0.4",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
+    "express-promise-router": "^3.0.3",
     "fs": "0.0.1-security",
     "geolib": "^2.0.24",
     "ip-to-location": "^1.0.1",
