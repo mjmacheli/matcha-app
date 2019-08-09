@@ -42,12 +42,11 @@ const url = 'http://localhost:3000/user/dashboard'
         body: JSON.stringify({ id: id })
     })
         .then(res => res.json())
-        .then( res => {
-            profileData = res[0]
+        .then(res => {
+            profileData = res.profile
             render(profileData)
             getUserInterests(id)
         })
-        .catch(console.error)
 }
 
 //Modal Control
@@ -150,12 +149,12 @@ function saveImages(images){
     })
     .then(res=>res.json())
     .then(res=>console.log(res.interests))
-    .catch(console.error)
+    .catch(err=>console.error(err))
     
 }
 
 function getUserInterests(id){
-    const url = 'http://localhost:3000/user/interests'
+    const url = 'http://localhost:3000/user/getUserInterests'
 
     return (fetch(url, {
         method: 'POST',
@@ -168,7 +167,7 @@ function getUserInterests(id){
     .then(res=>res.json())
     .then(res=>{
         //Cut out ID and Usr ID: Not Ideal but hey maan..
-        const ints = Object.values(res[0]).slice(1, -1)
+        const ints = Object.values(res.interests).slice(1, -1)
         ints.forEach((interest)=>{
             const listItem = document.createElement('li')
             listItem.classList.add('interest')
@@ -178,5 +177,5 @@ function getUserInterests(id){
             interests.appendChild(listItem)
         })
     })
-    .catch(console.error))
+    .catch(err=>console.error(err)))
 }
