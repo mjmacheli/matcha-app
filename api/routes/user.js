@@ -48,15 +48,14 @@ router.post('/login', async (req, res, nxt) => {
                     {
                         expiresIn: '12hr'
                     })
-                res.status(200).json({ id, token })
+                res.status(200)
+                res.json({ id, token })
             } else res.status(401).json({ message: 'Username / Password incoprrect' })         
         }
     } catch ( err ){
         nxt( err )
     }
 })
-
-
 
 router.post('/register', async (req, res, nxt) => {
     
@@ -208,6 +207,7 @@ async function verifyEmail( data ) {
     return info.messageId
 }
 
+//auth as second param
 router.post('/dashboard', auth, async (req, res, nxt) => {
     //Prepare query
     const query = {
@@ -216,7 +216,7 @@ router.post('/dashboard', auth, async (req, res, nxt) => {
                 users.bio, users.auth, users.gender, users.pic1, 
                 users.pic2, users.pic3, users.pic4, users.pic5
                 from users where users.id=$1;`,
-        values: [req.body.id],
+        values: [ req.body.id ],
         rowMode: 'object'
     }
 

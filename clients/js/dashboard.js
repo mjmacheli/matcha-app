@@ -43,9 +43,11 @@ const url = 'http://localhost:3000/user/dashboard'
     })
         .then(res => res.json())
         .then(res => {
-            profileData = res.profile
-            render(profileData)
-            getUserInterests(id)
+            console.log(res)
+            
+            profileData = res
+            render(profileData)           
+            // getUserInterests(id)
         })
 }
 
@@ -74,10 +76,10 @@ function render(data) {
     surname.innerHTML += data.surname
     email.innerHTML += data.email
     bio.innerHTML += data.bio
-    gallery[0].src = data.pic1
-    gallery[1].src = data.pic2
-    gallery[2].src = data.pic3
-    gallery[3].src = data.pic4
+    // gallery[0].src = data.pic1
+    // gallery[1].src = data.pic2
+    // gallery[2].src = data.pic3
+    // gallery[3].src = data.pic4
 }
 
 function profileUpdate(e){
