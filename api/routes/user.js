@@ -19,6 +19,8 @@ const ip = '155.93.241.102'
 
 const router = new Router()
 
+require('dotenv').config()
+
 router.post('/login', async (req, res, nxt) => {
     const { username, password } = req.body
     //get client ip
@@ -166,8 +168,8 @@ async function verifyEmail( data ) {
         port: 587,
         secure: false, // true for 465, false for other ports
         auth: {
-            user: 'machelimail@gmail.com',
-            pass: 'Macheli@1196'
+            user: process.env.EMAIL,
+            pass: process.env.PW
         },
         tls: {
             // do not fail on invalid certs
