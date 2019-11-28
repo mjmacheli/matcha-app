@@ -15,7 +15,10 @@ const ip2location = require('ip-to-location')
 
 const radius = 10000
 
-const ip = '155.93.241.102'
+//geo IP lite
+const geoip = require('geoip-lite')
+
+const ip = '41.71.114.146' //155.93.241.102
 
 const router = new Router()
 
@@ -42,7 +45,7 @@ router.post('/login', async (req, res, nxt) => {
         else {
             //Check Password against bcrypt - if True, sign a token otherwise return 401
             const checkPw = await bcrypt.compare(password, rows[0].password)
-            
+
             if ( checkPw ){
                 const { id, username, email } = rows[0]
                 const token = await jwt.sign({ id, username, email },
@@ -52,7 +55,7 @@ router.post('/login', async (req, res, nxt) => {
                     })
                 res.status(200)
                 res.json({ id, token })
-            } else res.status(401).json({ message: 'Username / Password incoprrect' })         
+            } else res.status(401).json({ message: 'Username / Password incoprrect' })
         }
     } catch ( err ){
         nxt( err )
@@ -60,8 +63,8 @@ router.post('/login', async (req, res, nxt) => {
 })
 
 router.post('/register', async (req, res, nxt) => {
-    
-    const { body } = req   
+
+    const { body } = req
 
     try {
         //Check If username Exists
@@ -70,35 +73,34 @@ router.post('/register', async (req, res, nxt) => {
         //check if Email Exist
         const emailExist = await check( 'email', body.email )
 
-        const registered = userExist || emailExist ? 
-                    res.status(409).json({ message: 'Email/Username Already Exist '}) : 
+        const registered = ( userExist || emailExist ) ?
+                    res.status(409).json({ message: 'Email/Username Already Exist '}) :
                     await register( body )
 
         // Send Verification Mail
-        if ( registered === 1 ) {            
+        if ( registered === 1 ) {
             const emailSent = await verifyEmail( body )
-            console.log('Email')
             //Send Verification
             await pool.query('insert into auth (user_email, email_id) values( $1, $2 );', [ body.email, emailSent ])
-            return res.status(201).json({ message: `Registered ${ emailSent }` })         
+            return res.status(201).json({ message: `Registered ${ emailSent }` })
         } else
             return registered
-        
+
     } catch ( err ) {
         nxt( err )
     }
 })
 
 /**
- * 
- * @param {*} field 
- * @param {*} value 
- * 
+ *
+ * @param {*} field
+ * @param {*} value
+ *
  * General Function for checking Duplicates in DB
  */
 
 async function check( field, value ) {
-    
+
     const query = {
         // give the query a unique name
         name: `check-${ field }`,
@@ -109,10 +111,11 @@ async function check( field, value ) {
 
     try {
         const { rowCount } = await pool.query( query )
+        console.log( 'tst '+ {rowCount} )
         return rowCount
     } catch ( err ) {
         return  err
-    }        
+    }
 }
 
 async function register( data ) {
@@ -132,7 +135,7 @@ async function register( data ) {
         return rowCount
     } catch ( err ) {
         return err.message
-    }        
+    }
 
 }
 
@@ -211,16 +214,23 @@ async function verifyEmail( data ) {
 
 //auth as second param
 router.post('/dashboard', auth, async (req, res, nxt) => {
+    //get IP
+    // const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+
     //Prepare query
     const query = {
-        text: `select users.id, users.name, users.surname, 
-                users.email, users.username, users.password, 
-                users.bio, users.auth, users.gender, users.pic1, 
-                users.pic2, users.pic3, users.pic4, users.pic5
+        text: `select users.id, users.name, users.surname,
+                users.email, users.username, users.password,
+                users.bio,users.gender
                 from users where users.id=$1;`,
         values: [ req.body.id ],
         rowMode: 'object'
     }
+
+    const geo = geoip.lookup( ip )
+    console.log( geo )
+
+    console.log(`ip is ${ip}`)
 
     //Get user
     try{
@@ -230,7 +240,7 @@ router.post('/dashboard', auth, async (req, res, nxt) => {
     } catch( err ){
         const error = await nxt(err)
         res.json({'message': error})
-    } 
+    }
 })
 
 router.post('/auth/:email_id', async (req, res) =>{
@@ -243,9 +253,9 @@ router.post('/interests', auth, async (req, res, nxt) => {
     const query = {
         // give the query a unique name
         name: 'images',
-        text: `select interests.id, interests.int1, 
-                interests.int3, interests.int4, 
-                interests.user_id 
+        text: `select interests.id, interests.int1,
+                interests.int3, interests.int4,
+                interests.user_id
                 from interests where interests.user_id=$1;`,
         values: [req.body.id],
         rowMode: 'object'
@@ -276,14 +286,14 @@ router.patch('/update', auth, async (req, res, nxt)=>{
                 gender=$6, bio=$7 where id=$8`,
             values: [ body.name, body.surname, body.email, body.username, pw, body.gender, body.bio, body.id ]
         }
-    
+
         const msg = await pool.query(query)
         res.status(202)
         res.json({message: msg})
     } catch ( err ){
         const error = await nxt( err )
         res.json({ message: error })
-    }  
+    }
 })
 
 router.patch('/upload', auth, async (req, res, nxt)=>{
@@ -334,9 +344,9 @@ function getCloseUsers( result ){
 }
 
 /**
- * 
+ *
  * @param {*} ids
- * Queries DB to get All interests from given array of IDs 
+ * Queries DB to get All interests from given array of IDs
  */
 async function getPotentialSuits( ids ){
     const intrests = await Promise.all( ids.map( id => ( pool.query('SELECT * FROM interests where id=$1', [ id ] ))))
