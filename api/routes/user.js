@@ -22,8 +22,6 @@ const ip = '41.71.114.146' //155.93.241.102
 
 const router = new Router()
 
-require('dotenv').config()
-
 router.post('/login', async (req, res, nxt) => {
     const { username, password } = req.body
     //get client ip

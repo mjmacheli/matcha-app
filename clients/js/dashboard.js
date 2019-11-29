@@ -6,7 +6,8 @@ const gallery = document.querySelectorAll('.img-gallery')
 const name = document.querySelector('#name')
 const surname = document.querySelector('#surname')
 const email = document.querySelector('#email')
-const bio = document.querySelector('#bio')
+const gender = document.querySelector('#gender')
+const bio = document.querySelector('#usrbio')
 
 const upload = document.querySelector('#upload')
 const infoEdit = document.querySelector('#edit-info')
@@ -44,9 +45,9 @@ const url = 'http://localhost:3000/user/dashboard'
         .then(res => res.json())
         .then(res => {
             console.log(res)
-            
+
             profileData = res
-            render(profileData)           
+            render(profileData)
             // getUserInterests(id)
         })
 }
@@ -75,6 +76,7 @@ function render(data) {
     name.innerHTML += data.name
     surname.innerHTML += data.surname
     email.innerHTML += data.email
+    gender.innerHTML += data.gender
     bio.innerHTML += data.bio
     // gallery[0].src = data.pic1
     // gallery[1].src = data.pic2
@@ -128,7 +130,7 @@ function validateInput(e){
     }
     // TODO
     // Send Images to server
-    saveImages(aryImages)    
+    saveImages(aryImages)
 }
 
 function saveImages(images){
@@ -152,7 +154,7 @@ function saveImages(images){
     .then(res=>res.json())
     .then(res=>console.log(res.interests))
     .catch(err=>console.error(err))
-    
+
 }
 
 function getUserInterests(id){
