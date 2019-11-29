@@ -18,7 +18,8 @@ const radius = 10000
 //geo IP lite
 const geoip = require('geoip-lite')
 
-const ip = '41.71.114.146' //155.93.241.102
+// const ip = '41.71.114.146' //155.93.241.102
+const ip = '155.93.241.102'
 
 const router = new Router()
 
@@ -225,10 +226,8 @@ router.post('/dashboard', auth, async (req, res, nxt) => {
         rowMode: 'object'
     }
 
-    const geo = geoip.lookup( ip )
+    const geo = getlocation( ip )
     console.log( geo )
-
-    console.log(`ip is ${ip}`)
 
     //Get user
     try{
@@ -270,11 +269,24 @@ router.post('/interests', auth, async (req, res, nxt) => {
     }
 })
 
-router.patch('/update', auth, async (req, res, nxt)=>{
+router.patch('/update', /*auth,*/ async (req, res, nxt) => {
     const { body } = req
 
+    const [ profile ] = await getUser( body.username )
+    const {
+      username = null,
+      password = null,
+      name = null,
+      surname = null,
+      gender = null,
+      town = null,
+      ll = null
+    } = profile
+
+    console.log( username +' '+ password +' '+ name +' '+ surname +' '+ gender +' '+ town +' '+ ll  )
+
     //Hash the password async then run a query
-    const pw = await bcrypt.hash(body.password, 10)
+    const pw = password ? password : await bcrypt.hash( body.password, 10 )
 
     try {
         const query = {
@@ -327,6 +339,27 @@ router.get('/suggest', async (req, res)=>{
     console.log(suitors)
 })
 
+
+async function getUser( username ) {
+  //Prepare query
+  const query = {
+      text: `select users.id, users.name, users.surname,
+              users.email, users.password,
+              users.bio,users.gender
+              from users where users.username=$1;`,
+      values: [ username ],
+      rowMode: 'object'
+  }
+
+  //Get user
+  try{
+      const { rows } = await pool.query( query )
+      return ( rows )
+  } catch( err ){
+    return ( err )
+  }
+}
+
 /**
  * Gets IDs of User's preferred gender: males if user is female
  */
@@ -361,8 +394,26 @@ function suggestUsers(home, matches, prefs='Males'){
    return (potentials)
 }
 
-function getlocation(ip) {
-    return (ip2location.fetch(ip).then(res => {console.log(res)}))
+function getlocation( ip ) {
+    const { city, ll, region } = geoip.lookup( ip )
+    // console.log( city + ' ' + ll + ' ' + region )
+    //send to db
+    // try {
+    //     const query = {
+    //         name: 'set-location',
+    //         text: `update users set name=$1,surname=$2,
+    //             email=$3, username=$4,password=$5,
+    //             gender=$6, bio=$7 where id=$8`,
+    //         values: [ body.name, body.surname, body.email, body.username, pw, body.gender, body.bio, body.id ]
+    //     }
+    //
+    //     const msg = await pool.query(query)
+    //     res.status(202)
+    //     res.json({message: msg})
+    // } catch ( err ){
+    //     const error = await nxt( err )
+    //     res.json({ message: error })
+    // }
 }
 
 module.exports = router
